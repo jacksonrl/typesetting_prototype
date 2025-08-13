@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dart PDF JS Interop with Monaco Editor</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: sans-serif;
+            overscroll-behavior: contain;
+            background-color: #f0f0f0;
+
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            padding: 0.5em;
+            box-sizing: border-box;
+        }
+        
+        #top-bar {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5em;
+            gap: 0.75em;
+        }
+
+        #top-bar h1 {
+            margin: 0;
+            font-size: 1.15em;
+            white-space: nowrap; 
+        }
+
+        .top-bar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75em;
+        }
+        
+        .top-bar-group label, .top-bar-group h2 {
+            margin: 0;
+            font-size: 0.9em;
+            color: #444;
+            white-space: nowrap;
+        }
+
+        #main-layout-container {
+            flex-grow: 1; 
+            display: flex;
+            gap: 0; 
+            min-height: 0;
+        }
+
+        .layout-column {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            flex-grow: 1;
+            flex-shrink: 1;
+        }
+        
+        #left-pane {
+            flex-basis: 50%; /* Initial size */
+        }
+        
+        #right-pane {
+            flex-basis: 50%; /* Initial size */
+        }
+
+        #resize-handle {
+            flex-basis: 4px; /* width of the handle */
+            flex-shrink: 0;
+            flex-grow: 0;
+            cursor: col-resize;
+            background-color: #e0e0e0;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            transition: background-color 0.2s ease;
+        }
+        
+        #resize-handle:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 0.5em;
+            align-items: center;
+        }
+        
+        .button-group select {
+            padding: 0.3em 0.5em;
+            border: 1px solid #888;
+            border-radius: 3px;
+            background-color: #fff;
+            font-size: 13px;
+        }
+        
+        .button-group button, .button-group a {
+            padding: 0.4em 0.8em;
+            border: 1px solid #888;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            text-decoration: none;
+            color: #111;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .button-group button:hover, .button-group a:hover {
+            background-color: #d0d0d0;
+        }
+        .button-group button:disabled {
+            background-color: #f5f5f5;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+
+        #editor-container, #output-container {
+            flex-grow: 1;
+            min-height: 0;
+            display: flex;
+        }
+        
+        #editor-container iframe, #output-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="top-bar">
+        <div class="top-bar-group">
+            <h2>Script Editor</h2>
+            <div class="button-group">
+                <label for="example-select">Example:</label>
+                <select id="example-select"></select>
+            </div>
+        </div>
+        <div class="top-bar-group">
+            <h1>Dart PDF Generator</h1>
+        </div>
+        <div class="top-bar-group">
+             <h2>PDF Preview</h2>
+            <div class="button-group">
+                <a id="open-pdf-link" href="#" target="_blank" style="display: none;">Open PDF in New Tab</a>
+                <button id="generate-pdf-button">Generate PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-layout-container">
+
+        <div id="left-pane" class="layout-column">
+            <div id="editor-container">
+                <iframe id="editor-iframe" src="editor.html"></iframe>
+            </div>
+        </div>
+        
+        <div id="resize-handle"></div>
+
+        <div id="right-pane" class="layout-column">
+            <div id="output-container">
+                Click the "Generate PDF" button to see the output here.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const editorIframe = document.getElementById('editor-iframe');
+        const generateButton = document.getElementById('generate-pdf-button');
+        const openLink = document.getElementById('open-pdf-link');
+        const outputContainer = document.getElementById('output-container');
+        const exampleSelect = document.getElementById('example-select');
+        const EXAMPLES = {
+            'table_example.js': 'Table Demo',
+            'complex.js': 'Footnotes & Headers',
+            'user_example_2.js': 'Layout Widgets',
+            'user_example_3.js': 'Comprehensive Demo',
+            'simple_2.js': 'Simple'
+        };
+        const DEFAULT_EXAMPLE_FILE = 'complex.js';
+        let isEditorReady = false;
+        let dartApp = null;
+        let currentPdfUrl = null;
+        const pendingRequests = new Map();
+        let requestIdCounter = 0;
+
+        function initializeResizer() {
+            const resizeHandle = document.getElementById('resize-handle');
+            const leftPane = document.getElementById('left-pane');
+            const rightPane = document.getElementById('right-pane');
+            const container = document.getElementById('main-layout-container');
+
+            let isResizing = false;
+
+            resizeHandle.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                e.preventDefault(); // Prevent text selection
+                editorIframe.style.pointerEvents = 'none';
+                const outputIframe = outputContainer.querySelector('iframe');
+                if (outputIframe) {
+                    outputIframe.style.pointerEvents = 'none';
+                }
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', stopResizing);
+            });
+
+            function handleMouseMove(e) {
+                if (!isResizing) return;
+                
+                const containerRect = container.getBoundingClientRect();
+                const containerStart = containerRect.left;
+                const containerWidth = containerRect.width;
+                let newLeftWidth = e.clientX - containerStart;
+                const minWidth = 200;
+                if (newLeftWidth < minWidth) newLeftWidth = minWidth;
+                if (newLeftWidth > containerWidth - minWidth) newLeftWidth = containerWidth - minWidth;
+
+                const newLeftPercent = (newLeftWidth / containerWidth) * 100;
+
+                leftPane.style.flexBasis = `${newLeftPercent}%`;
+                rightPane.style.flexBasis = `${100 - newLeftPercent}%`;
+            }
+
+            function stopResizing() {
+                isResizing = false;
+                
+                editorIframe.style.pointerEvents = 'auto';
+                const outputIframe = outputContainer.querySelector('iframe');
+                if (outputIframe) {
+                    outputIframe.style.pointerEvents = 'auto';
+                }
+
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', stopResizing);
+            }
+        }
+
+        function populateExamplesDropdown() {
+            for (const [file, name] of Object.entries(EXAMPLES)) {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = name;
+                exampleSelect.appendChild(option);
+            }
+            exampleSelect.value = DEFAULT_EXAMPLE_FILE;
+        }
+        async function loadExampleIntoEditor(filename) {
+            if (!isEditorReady) return;
+            try {
+                exampleSelect.disabled = true;
+                const response = await fetch(filename);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch script: ${response.statusText}`);
+                }
+                const scriptContent = await response.text();
+                editorIframe.contentWindow.postMessage({
+                    type: 'SET_EDITOR_CONTENT',
+                    content: scriptContent
+                }, '*');
+                generateButton.click();
+            } catch (error) {
+                console.error('Error loading example:', error);
+                alert(`Could not load example script: ${filename}`);
+            } finally {
+                exampleSelect.disabled = false;
+            }
+        }
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (!message || !message.type) return;
+            switch (message.type) {
+                case 'EDITOR_READY':
+                    console.log("Editor Iframe is ready.");
+                    isEditorReady = true;
+                    loadExampleIntoEditor(DEFAULT_EXAMPLE_FILE);
+                    if (dartApp) {
+                        dartApp.startDartApp();
+                    }
+                    break;
+                case 'GET_EDITOR_CONTENT_RESPONSE':
+                    if (pendingRequests.has(message.id)) {
+                        const resolver = pendingRequests.get(message.id);
+                        resolver(message.content);
+                        pendingRequests.delete(message.id);
+                    }
+                    break;
+            }
+        });
+        function displayPdf(url) {
+            if (currentPdfUrl) {
+                URL.revokeObjectURL(currentPdfUrl);
+            }
+            currentPdfUrl = url;
+            outputContainer.innerHTML = '';
+            const iframe = document.createElement('iframe');
+            iframe.id = 'pdf-viewer-iframe';
+            iframe.src = `viewer.html?file=${encodeURIComponent(url)}`;
+            outputContainer.appendChild(iframe);
+            const friendlyUrl = `friendly-viewer.html?file=${encodeURIComponent(url)}&name=generated.pdf`;
+            openLink.href = friendlyUrl;
+            openLink.style.display = 'inline-block';
+            generateButton.disabled = false;
+            generateButton.textContent = 'Generate PDF';
+        }
+        function displayPdfError(errorMessage) {
+            if (currentPdfUrl) {
+                URL.revokeObjectURL(currentPdfUrl);
+                currentPdfUrl = null;
+            }
+            outputContainer.textContent = `❌ An error occurred:\n${errorMessage}`;
+            openLink.style.display = 'none';
+            generateButton.disabled = false;
+            generateButton.textContent = 'Generate PDF';
+        }
+        function getEditorContent() {
+            return new Promise((resolve, reject) => {
+                if (!isEditorReady) {
+                    reject(new Error("Editor is not ready."));
+                    return;
+                }
+                const requestId = requestIdCounter++;
+                pendingRequests.set(requestId, resolve);
+                setTimeout(() => {
+                    if (pendingRequests.has(requestId)) {
+                        pendingRequests.delete(requestId);
+                        reject(new Error("Request for editor content timed out."));
+                    }
+                }, 5000);
+                editorIframe.contentWindow.postMessage({
+                    type: 'GET_EDITOR_CONTENT',
+                    id: requestId
+                }, '*');
+            });
+        }
+        function onDartReady(app) {
+            console.log("Dart is ready!");
+            dartApp = app;
+            if (isEditorReady) {
+                dartApp.startDartApp();
+            }
+            generateButton.addEventListener('click', () => {
+                generateButton.disabled = true;
+                generateButton.textContent = 'Generating...';
+                outputContainer.textContent = 'Requesting script and generating PDF...';
+                dartApp.generateAndSendPdf();
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            populateExamplesDropdown();
+            exampleSelect.addEventListener('change', (event) => {
+                loadExampleIntoEditor(event.target.value);
+            });
+            initializeResizer();
+        });
+    </script>
+    <script defer src="main.dart.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dart PDF JS Interop</title>
+    <script defer src="main.dart.js"></script>
+    
+    <style>
+        body { font-family: sans-serif; padding: 2em; }
+        #output-container { margin-top: 1em; }
+        #script-editor {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            box-sizing: border-box; 
+            margin-top: 0.5em;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Dart PDF Generator with JS Interop</h1>
+    
+    <button id="generate-pdf-button">Generate PDF from Script</button>
+
+    <div id="output-container">
+        Click the button to generate a PDF from the script in the editor below.
+    </div>
+
+    <h2>Script Editor:</h2>
+    <textarea id="script-editor"></textarea>
+
+</body>
+</html>

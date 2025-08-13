@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor Iframe</title>
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs/editor/editor.main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vscode-codicons@0.0.35/dist/codicon.css">
+    <style>
+        html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; width: 100%; }
+        .monaco-editor-container { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div class="monaco-editor-container"></div>
+
+    <script type="module">
+        const MONACO_VERSION = '0.39.0';
+        const BASE_URL = `https://cdn.jsdelivr.net/npm/monaco-editor@${MONACO_VERSION}/min`;
+
+        const workerScript = `self.MonacoEnvironment = { baseUrl: '${BASE_URL}' }; importScripts('${BASE_URL}/vs/base/worker/workerMain.js');`;
+        const workerBlob = new Blob([workerScript], { type: 'application/javascript' });
+        const workerUrl = URL.createObjectURL(workerBlob);
+        window.MonacoEnvironment = { getWorkerUrl: () => workerUrl };
+
+        import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
+        
+        let editor;
+
+        async function initializeEditor() {
+            const libraryResponse = await fetch('lib.js');
+            const libraryCode = await libraryResponse.text();
+            const libUri = 'ts:filename/script-library.js';
+            monaco.languages.typescript.javascriptDefaults.addExtraLib(libraryCode, libUri);
+            monaco.editor.createModel(libraryCode, 'javascript', monaco.Uri.parse(libUri));
+            monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+                target: monaco.languages.typescript.ScriptTarget.ES2020,
+                allowNonTsExtensions: true,
+                checkJs: true,
+            });
+
+            editor = monaco.editor.create(document.querySelector('.monaco-editor-container'), {
+                value: '// Select an example to begin...',
+                language: 'javascript',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                scrollBeyondLastLine: false,
+                minimap: {
+                    autohide: true
+                },
+                padding: {
+                    top: 10
+                },
+                glyphMargin: false,
+                lineNumbersMinChars: 4
+            });
+
+            window.parent.postMessage({ type: 'EDITOR_READY' }, '*');
+        }
+        
+        initializeEditor();
+
+        window.addEventListener('message', event => {
+            const message = event.data;
+            switch (message.type) {
+                case 'SET_EDITOR_CONTENT':
+                    if (editor && typeof message.content === 'string') {
+                        editor.setValue(message.content);
+                    }
+                    break;
+                case 'GET_EDITOR_CONTENT':
+                    if (editor) {
+                        const content = editor.getValue();
+                        window.parent.postMessage({
+                            type: 'GET_EDITOR_CONTENT_RESPONSE',
+                            content: content,
+                            id: message.id
+                        }, '*');
+                    }
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

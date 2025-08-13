@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf_viewer.min.css" />
+
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #525659;
+            overflow: auto;
+            overscroll-behavior-x: none;
+        }
+        #pdf-main-container {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #pdf-loader {
+            display: none; text-align: center; color: #fff; font-size: 16px; padding: 50px;
+        }
+        #pdf-contents { display: none; }
+        
+        #pdf-canvas-container {
+            padding: 0;
+        }
+        .pdf-canvas-wrapper {
+            position: relative; 
+            margin: 0 auto 10px auto; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            width: -moz-fit-content;
+            width: fit-content;
+        }
+        
+        .pdf-canvas { display: block; }
+        .textLayer {
+            position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+            overflow: hidden; opacity: 0.2; line-height: 1.0; pointer-events: auto;
+            user-select: none; /*TODO: re-enable test selection when it is fixed*/
+        }
+		.textLayer ::selection { background: rgba(0, 0, 255, 0.6); }
+        #page-loader {
+            padding: 20px; text-align: center; display: none; color: #fff; font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="pdf-main-container">
+        <div id="pdf-loader">Loading document ...</div>
+        <div id="pdf-contents">
+            <div id="pdf-canvas-container"></div>
+            <div id="page-loader">Rendering pages ...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
+        import { TextLayer } from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+
+        let __PDF_DOC;
+        let __TOTAL_PAGES;
+        let __IS_RENDERING = false;
+        
+        let __customScale = 1.0;
+        const ZOOM_SENSITIVITY = 0.0025;
+        const MAX_SCALE = 5.0;
+        const MIN_SCALE = 0.25;
+
+        function showPDF(pdf_url) {
+            document.getElementById('pdf-loader').style.display = 'block';
+            document.getElementById('pdf-contents').style.display = 'none';
+            pdfjsLib.getDocument({ url: pdf_url }).promise.then(pdf_doc => {
+                __PDF_DOC = pdf_doc;
+                __TOTAL_PAGES = pdf_doc.numPages;
+                document.getElementById('pdf-loader').style.display = 'none';
+                document.getElementById('pdf-contents').style.display = 'block';
+                triggerRender();
+            }).catch(error => {
+                document.getElementById('pdf-loader').style.display = 'none';
+                alert(`Failed to load PDF: ${error.message}`);
+            });
+        }
+        
+        async function renderAllPages(onCompleteCallback) {
+            if (__IS_RENDERING || !__PDF_DOC) return;
+            __IS_RENDERING = true;
+            document.getElementById('page-loader').style.display = 'block';
+            const container = document.getElementById('pdf-canvas-container');
+            container.innerHTML = '';
+            const pagePromises = Array.from({ length: __TOTAL_PAGES }, (_, i) => renderPage(i + 1, container));
+            await Promise.all(pagePromises);
+            document.getElementById('page-loader').style.display = 'none';
+            __IS_RENDERING = false;
+
+            if (onCompleteCallback) {
+                onCompleteCallback();
+            }
+        }
+
+        async function renderPage(pageNumber, container) {
+            const page = await __PDF_DOC.getPage(pageNumber);
+            const devicePixelRatio = window.devicePixelRatio || 1;
+            const viewport1 = page.getViewport({ scale: 1 });
+            const fitScale = (container.clientWidth * 0.95) / viewport1.width;
+            const finalRenderScale = fitScale * __customScale * devicePixelRatio;
+            const scaledViewport = page.getViewport({ scale: finalRenderScale });
+            const wrapperDiv = document.createElement('div');
+            const canvas = document.createElement('canvas');
+            const textLayerDiv = document.createElement('div');
+            wrapperDiv.className = 'pdf-canvas-wrapper';
+            canvas.className = 'pdf-canvas';
+            textLayerDiv.className = 'textLayer';
+            wrapperDiv.appendChild(canvas);
+            wrapperDiv.appendChild(textLayerDiv);
+            container.appendChild(wrapperDiv);
+            canvas.width = scaledViewport.width;
+            canvas.height = scaledViewport.height;
+            canvas.style.width = `${(scaledViewport.width / devicePixelRatio)}px`;
+            canvas.style.height = `${(scaledViewport.height / devicePixelRatio)}px`;
+            textLayerDiv.style.width = canvas.style.width;
+            textLayerDiv.style.height = canvas.style.height;
+            const context = canvas.getContext('2d');
+            const renderContext = { canvasContext: context, viewport: scaledViewport };
+            await page.render(renderContext).promise;
+            const textContent = await page.getTextContent();
+            const textLayerViewport = page.getViewport({ scale: fitScale * __customScale });
+            const textLayer = new TextLayer({
+                textContentSource: textContent,
+                container: textLayerDiv,
+                viewport: textLayerViewport,
+            });
+            //textLayer.render();//TODO: re-enable when text selection is fixed
+        }
+
+        let renderTimeout;
+        function triggerRender(onCompleteCallback) {
+            clearTimeout(renderTimeout);
+            renderTimeout = setTimeout(() => renderAllPages(onCompleteCallback), 150);
+        }
+
+        window.addEventListener('wheel', (event) => {
+            if (event.ctrlKey) {
+                event.preventDefault();
+
+                const scrollX_before = window.scrollX;
+                const scrollY_before = window.scrollY;
+                const mouseX = event.clientX;
+                const mouseY = event.clientY;
+                const oldScale = __customScale;
+
+                const newScaleValue = __customScale - event.deltaY * ZOOM_SENSITIVITY;
+                __customScale = Math.max(MIN_SCALE, Math.min(newScaleValue, MAX_SCALE));
+                
+                if (oldScale === __customScale) {
+                    return;
+                }
+
+                const scaleRatio = __customScale / oldScale;
+
+                const documentX = scrollX_before + mouseX;
+                const documentY = scrollY_before + mouseY;
+
+                const newDocumentX = documentX * scaleRatio;
+                const newDocumentY = documentY * scaleRatio;
+
+                const newScrollX = newDocumentX - mouseX;
+                const newScrollY = newDocumentY - mouseY;
+
+                triggerRender(() => {
+                    window.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
+                });
+            }
+        }, { passive: false });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const fileUrl = params.get('file');
+            if (fileUrl) {
+                showPDF(decodeURIComponent(fileUrl));
+            } else {
+                document.getElementById('pdf-loader').innerText = 'This viewer is intended to be used inside an iframe.';
+                document.getElementById('pdf-loader').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
