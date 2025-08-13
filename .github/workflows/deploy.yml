@@ -19,6 +19,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Show all files in repository
+        run: ls -RF
+
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
