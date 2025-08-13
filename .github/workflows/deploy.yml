@@ -19,9 +19,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show all files in repository
-        run: ls -RF
-
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
@@ -34,7 +31,15 @@ jobs:
         run: dart pub global activate webdev
 
       - name: Build web app
+        id: build
         run: webdev build
+        continue-on-error: true
+
+      - name: Check build status and debug on failure
+        run: |
+          ls -RF build
+          echo "Exiting with error to stop the workflow."
+          exit 1
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
