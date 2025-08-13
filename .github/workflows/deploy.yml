@@ -32,7 +32,7 @@ jobs:
 
       - name: Build web app
         id: build
-        run: webdev build
+        run: dart run build_runner build --delete-conflicting-outputs -o web:build
         continue-on-error: true
 
       - name: Check build status and debug on failure
