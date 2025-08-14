@@ -1,3 +1,5 @@
+Demo: https://jacksonrl.github.io/typesetting_prototype/
+
 Typsetting program written in dart, with the following features:
 
 - Multi column text with balancing
@@ -8,6 +10,8 @@ Typsetting program written in dart, with the following features:
 
 - Footnotes
 
-  Not yet supported:
+Not yet supported:
 
-  - MathML/Latex formulas
+- MathML/Latex formulas
+
+typesetting_prototype's architecture is based mainly on Flutter.
