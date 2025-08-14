@@ -33,13 +33,6 @@ jobs:
       - name: Build web app
         id: build
         run: dart run build_runner build --delete-conflicting-outputs -o web:build
-        continue-on-error: true
-
-      - name: Check build status and debug on failure
-        run: |
-          ls -RF build
-          echo "Exiting with error to stop the workflow."
-          exit 1
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
