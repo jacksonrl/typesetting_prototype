@@ -16,6 +16,6 @@ Not yet supported:
 
 typesetting_prototype's architecture is based mainly on Flutter (but does not itself use the flutter framework). You can run it directly on the web or natively. In the native version you can create custom rendernodes (same as flutter renderobjects) for advanced features.
 
-The program is currently geared towards books, although as of yet nothing has been typeset in it.
+The program is currently geared towards books, although as of yet nothing has been typeset in it and is still in beta. You can still test it by cloning the repo or trying the web demo.
 
 Thanks to https://github.com/DavBfr/dart_pdf for the high quality PDF backend.
