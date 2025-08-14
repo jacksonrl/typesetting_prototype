@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dart PDF JS Interop with Monaco Editor</title>
     <base href="/typesetting_prototype/">
+    <script>
+        (function() {
+            const hostname = window.location.hostname;
+            // If we are on a local development server, remove the base tag.
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                document.querySelector('base').remove();
+            }
+        })();
+    </script>
     <style>
         html, body {
             height: 100%;
@@ -51,6 +60,23 @@
             font-size: 0.9em;
             color: #444;
             white-space: nowrap;
+        }
+        
+        #github-link {
+            height: 28px;
+            display: flex; 
+            align-items: center;
+        }
+
+        #github-icon {
+            height: 100%;
+            width: auto; 
+            display: block;
+            transition: opacity 0.2s ease;
+        }
+
+        #github-link:hover #github-icon {
+            opacity: 0.7;
         }
 
         #main-layout-container {
@@ -151,6 +177,9 @@
             <h1>Dart PDF Generator</h1>
         </div>
         <div class="top-bar-group">
+            <a id="github-link" href="https://github.com/jacksonrl/typesetting_prototype" target="_blank" rel="noopener noreferrer" title="View on GitHub">
+                <img id="github-icon" src="github-mark.svg" alt="GitHub Icon">
+            </a>
              <h2>PDF Preview</h2>
             <div class="button-group">
                 <a id="open-pdf-link" href="#" target="_blank" style="display: none;">Open PDF in New Tab</a>
