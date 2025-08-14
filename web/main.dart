@@ -39,7 +39,7 @@ class MyDartApp {
     try {
       final String userCode = (await getEditorContent().toDart).toDart;
 
-      final libResponse = await http.get(Uri.parse('lib.js'));
+      final libResponse = await http.get(Uri.parse('std_lib.js'));
       if (libResponse.statusCode != 200) {
         throw Exception('Could not load script library for execution.');
       }

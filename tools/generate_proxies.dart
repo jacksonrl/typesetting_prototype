@@ -151,7 +151,7 @@ void main() async {
 
   print('Generating JavaScript API library...');
   final jsApiContent = await generateJsApiFile(allProxyClasses, enumClasses, session, _membersToSkip);
-  final jsApiFile = File('web/lib.js'); // Or your desired path
+  final jsApiFile = File('web/std_lib.js');
   await jsApiFile.writeAsString(jsApiContent, flush: true);
   print('Successfully generated JavaScript API library at ${jsApiFile.path}');
 

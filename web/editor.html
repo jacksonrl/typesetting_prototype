@@ -28,7 +28,7 @@
         let editor;
 
         async function initializeEditor() {
-            const libraryResponse = await fetch('lib.js');
+            const libraryResponse = await fetch('std_lib.js');
             const libraryCode = await libraryResponse.text();
             const libUri = 'ts:filename/script-library.js';
             monaco.languages.typescript.javascriptDefaults.addExtraLib(libraryCode, libUri);
