@@ -1,2 +1,13 @@
-A sample command-line application with an entrypoint in `bin/`, library code
-in `lib/`, and example unit test in `test/`.
+Typsetting program written in dart, with the following features:
+
+- Multi column text with balancing
+
+- Create page headers based on headers in body text
+
+- Table of Contents
+
+- Footnotes
+
+  Not yet supported:
+
+  - MathML/Latex formulas
