@@ -3,6 +3,8 @@
 
 // ignore_for_file: unused_field
 
+
+
 import 'dart:core';
 import 'dart:typed_data';
 
@@ -40,7 +42,10 @@ enum ScriptTableCellVerticalAlignment { top, middle, bottom, fill }
 enum ScriptTextDecoration { none, underline }
 
 class ScriptAlign extends ScriptWidget {
-  const ScriptAlign({this.alignment = ScriptAlignment.center, required this.child});
+  const ScriptAlign({
+    this.alignment = ScriptAlignment.center,
+    required this.child,
+  });
 
   final ScriptAlignment alignment;
 
@@ -81,9 +86,16 @@ class ScriptBorder {
     this.bottom = ScriptBorderSide.none,
   });
 
-  const ScriptBorder.fromBorderSide(ScriptBorderSide side) : top = side, left = side, right = side, bottom = side;
+  const ScriptBorder.fromBorderSide(ScriptBorderSide side)
+    : top = side,
+      left = side,
+      right = side,
+      bottom = side;
 
-  factory ScriptBorder.all({ScriptColor color = ScriptColor.black, double width = 1.0}) =>
+  factory ScriptBorder.all({
+    ScriptColor color = ScriptColor.black,
+    double width = 1.0,
+  }) =>
       ScriptBorder.fromBorderSide(ScriptBorderSide(color: color, width: width));
 
   final ScriptBorderSide top;
@@ -95,7 +107,12 @@ class ScriptBorder {
   final ScriptBorderSide bottom;
 
   ScriptEdgeInsets get dimensions {
-    return ScriptEdgeInsets.only(top: top.width, left: left.width, right: right.width, bottom: bottom.width);
+    return ScriptEdgeInsets.only(
+      top: top.width,
+      left: left.width,
+      right: right.width,
+      bottom: bottom.width,
+    );
   }
 }
 
@@ -126,7 +143,9 @@ class ScriptColor {
     } else if (hex.length == 8) {
       finalHex = hex;
     } else {
-      throw ArgumentError('Invalid hex color string: "$hexString". Must be in the format #RRGGBB or #AARRGGBB.');
+      throw ArgumentError(
+        'Invalid hex color string: "$hexString". Must be in the format #RRGGBB or #AARRGGBB.',
+      );
     }
     return ScriptColor(int.parse(finalHex, radix: 16));
   }
@@ -189,12 +208,15 @@ class ScriptDocumentMetadataRegistry {
   List<ScriptMetadataRecord> records = [];
 
   dynamic add(String key, dynamic value, int pageNumber) {
-    records.add(ScriptMetadataRecord(key: key, value: value, pageNumber: pageNumber));
+    records.add(
+      ScriptMetadataRecord(key: key, value: value, pageNumber: pageNumber),
+    );
   }
 
   dynamic updateFormattedNumbers(Map<int, String> pageNumberMap) {
     for (final record in records) {
-      record.formattedPageNumber = pageNumberMap[record.pageNumber] ?? record.pageNumber.toString();
+      record.formattedPageNumber =
+          pageNumberMap[record.pageNumber] ?? record.pageNumber.toString();
     }
   }
 
@@ -208,17 +230,29 @@ class ScriptDocumentMetadataRegistry {
 class ScriptEdgeInsets {
   const ScriptEdgeInsets.fromLTRB(this.left, this.top, this.right, this.bottom);
 
-  const ScriptEdgeInsets.zero() : bottom = 0.0, top = 0.0, left = 0.0, right = 0.0;
+  const ScriptEdgeInsets.zero()
+    : bottom = 0.0,
+      top = 0.0,
+      left = 0.0,
+      right = 0.0;
 
-  const ScriptEdgeInsets.all(double value) : this.fromLTRB(value, value, value, value);
+  const ScriptEdgeInsets.all(double value)
+    : this.fromLTRB(value, value, value, value);
 
-  const ScriptEdgeInsets.symmetric({double horizontal = 0.0, double vertical = 0.0})
-    : left = horizontal,
-      right = horizontal,
-      top = vertical,
-      bottom = vertical;
+  const ScriptEdgeInsets.symmetric({
+    double horizontal = 0.0,
+    double vertical = 0.0,
+  }) : left = horizontal,
+       right = horizontal,
+       top = vertical,
+       bottom = vertical;
 
-  const ScriptEdgeInsets.only({this.left = 0.0, this.top = 0.0, this.right = 0.0, this.bottom = 0.0});
+  const ScriptEdgeInsets.only({
+    this.left = 0.0,
+    this.top = 0.0,
+    this.right = 0.0,
+    this.bottom = 0.0,
+  });
 
   final double left;
 
@@ -274,36 +308,70 @@ class ScriptFlowFill extends ScriptWidget {
 sealed class ScriptFont {
   const ScriptFont();
 
-  static const ScriptFont helvetica = ScriptBuiltInFont(ScriptBuiltInFontName.helvetica);
+  static const ScriptFont helvetica = ScriptBuiltInFont(
+    ScriptBuiltInFontName.helvetica,
+  );
 
-  static const ScriptFont helveticaBold = ScriptBuiltInFont(ScriptBuiltInFontName.helveticaBold);
+  static const ScriptFont helveticaBold = ScriptBuiltInFont(
+    ScriptBuiltInFontName.helveticaBold,
+  );
 
-  static const ScriptFont helveticaOblique = ScriptBuiltInFont(ScriptBuiltInFontName.helveticaOblique);
+  static const ScriptFont helveticaOblique = ScriptBuiltInFont(
+    ScriptBuiltInFontName.helveticaOblique,
+  );
 
-  static const ScriptFont helveticaBoldOblique = ScriptBuiltInFont(ScriptBuiltInFontName.helveticaBoldOblique);
+  static const ScriptFont helveticaBoldOblique = ScriptBuiltInFont(
+    ScriptBuiltInFontName.helveticaBoldOblique,
+  );
 
-  static const ScriptFont times = ScriptBuiltInFont(ScriptBuiltInFontName.times);
+  static const ScriptFont times = ScriptBuiltInFont(
+    ScriptBuiltInFontName.times,
+  );
 
-  static const ScriptFont timesBold = ScriptBuiltInFont(ScriptBuiltInFontName.timesBold);
+  static const ScriptFont timesBold = ScriptBuiltInFont(
+    ScriptBuiltInFontName.timesBold,
+  );
 
-  static const ScriptFont timesItalic = ScriptBuiltInFont(ScriptBuiltInFontName.timesItalic);
+  static const ScriptFont timesItalic = ScriptBuiltInFont(
+    ScriptBuiltInFontName.timesItalic,
+  );
 
-  static const ScriptFont timesBoldItalic = ScriptBuiltInFont(ScriptBuiltInFontName.timesBoldItalic);
+  static const ScriptFont timesBoldItalic = ScriptBuiltInFont(
+    ScriptBuiltInFontName.timesBoldItalic,
+  );
 
-  static const ScriptFont courier = ScriptBuiltInFont(ScriptBuiltInFontName.courier);
+  static const ScriptFont courier = ScriptBuiltInFont(
+    ScriptBuiltInFontName.courier,
+  );
 
-  static const ScriptFont courierBold = ScriptBuiltInFont(ScriptBuiltInFontName.courierBold);
+  static const ScriptFont courierBold = ScriptBuiltInFont(
+    ScriptBuiltInFontName.courierBold,
+  );
 
-  static const ScriptFont courierOblique = ScriptBuiltInFont(ScriptBuiltInFontName.courierOblique);
+  static const ScriptFont courierOblique = ScriptBuiltInFont(
+    ScriptBuiltInFontName.courierOblique,
+  );
 
-  static const ScriptFont courierBoldOblique = ScriptBuiltInFont(ScriptBuiltInFontName.courierBoldOblique);
+  static const ScriptFont courierBoldOblique = ScriptBuiltInFont(
+    ScriptBuiltInFontName.courierBoldOblique,
+  );
 }
 
 class ScriptFontFamily {
-  const ScriptFontFamily({required this.regular, required this.bold, required this.italic, required this.boldItalic});
+  const ScriptFontFamily({
+    required this.regular,
+    required this.bold,
+    required this.italic,
+    required this.boldItalic,
+  });
 
   factory ScriptFontFamily.fromFont(ScriptFont font) {
-    return ScriptFontFamily(regular: font, bold: font, italic: font, boldItalic: font);
+    return ScriptFontFamily(
+      regular: font,
+      bold: font,
+      italic: font,
+      boldItalic: font,
+    );
   }
 
   static const ScriptFontFamily helvetica = ScriptFontFamily(
@@ -350,7 +418,10 @@ class ScriptFontFamily {
 }
 
 class ScriptFootnoteItem {
-  const ScriptFootnoteItem({required this.footnoteNumber, required this.content});
+  const ScriptFootnoteItem({
+    required this.footnoteNumber,
+    required this.content,
+  });
 
   final int footnoteNumber;
 
@@ -358,7 +429,11 @@ class ScriptFootnoteItem {
 }
 
 class ScriptFootnoteLayoutInfo {
-  ScriptFootnoteLayoutInfo({required this.content, required this.position, required this.number});
+  ScriptFootnoteLayoutInfo({
+    required this.content,
+    required this.position,
+    required this.number,
+  });
 
   final String content;
 
@@ -400,11 +475,19 @@ class ScriptImage extends ScriptWidget {
   const ScriptImage._(this._source, {this.width, this.height});
 
   factory ScriptImage.memory(Uint8List bytes, {double? width, double? height}) {
-    return ScriptImage._(ScriptMemoryImageSource(bytes), width: width, height: height);
+    return ScriptImage._(
+      ScriptMemoryImageSource(bytes),
+      width: width,
+      height: height,
+    );
   }
 
   factory ScriptImage.file(String path, {double? width, double? height}) {
-    return ScriptImage._(ScriptFileImageSource(path), width: width, height: height);
+    return ScriptImage._(
+      ScriptFileImageSource(path),
+      width: width,
+      height: height,
+    );
   }
 
   final ScriptImageSource _source;
@@ -447,7 +530,11 @@ class ScriptMemoryImageSource extends ScriptImageSource {
 }
 
 class ScriptMetadataMarker extends ScriptWidget {
-  const ScriptMetadataMarker({required this.key, required this.value, required this.child});
+  const ScriptMetadataMarker({
+    required this.key,
+    required this.value,
+    required this.child,
+  });
 
   final String key;
 
@@ -457,7 +544,11 @@ class ScriptMetadataMarker extends ScriptWidget {
 }
 
 class ScriptMetadataRecord {
-  ScriptMetadataRecord({required this.key, required this.value, this.pageNumber});
+  ScriptMetadataRecord({
+    required this.key,
+    required this.value,
+    this.pageNumber,
+  });
 
   final String key;
 
@@ -469,7 +560,11 @@ class ScriptMetadataRecord {
 }
 
 class ScriptMultiColumn extends ScriptWidget {
-  const ScriptMultiColumn({this.columnCount = 2, this.columnSpacing = 10.0, this.children = const []});
+  const ScriptMultiColumn({
+    this.columnCount = 2,
+    this.columnSpacing = 10.0,
+    this.children = const [],
+  });
 
   final int columnCount;
 
@@ -479,7 +574,11 @@ class ScriptMultiColumn extends ScriptWidget {
 }
 
 class ScriptMultiColumnFlow extends ScriptWidget {
-  const ScriptMultiColumnFlow({this.columnCount = 2, this.columnSpacing = 10.0, this.children = const []});
+  const ScriptMultiColumnFlow({
+    this.columnCount = 2,
+    this.columnSpacing = 10.0,
+    this.children = const [],
+  });
 
   final int columnCount;
 
@@ -529,13 +628,25 @@ class ScriptPageFormat {
 
   static const double dp = 0.48;
 
-  static const ScriptPageFormat a3 = ScriptPageFormat(841.8897637795275, 1190.551181102362);
+  static const ScriptPageFormat a3 = ScriptPageFormat(
+    841.8897637795275,
+    1190.551181102362,
+  );
 
-  static const ScriptPageFormat a4 = ScriptPageFormat(595.275590551181, 841.8897637795275);
+  static const ScriptPageFormat a4 = ScriptPageFormat(
+    595.275590551181,
+    841.8897637795275,
+  );
 
-  static const ScriptPageFormat a5 = ScriptPageFormat(419.5275590551181, 595.275590551181);
+  static const ScriptPageFormat a5 = ScriptPageFormat(
+    419.5275590551181,
+    595.275590551181,
+  );
 
-  static const ScriptPageFormat a6 = ScriptPageFormat(297.6377952755906, 419.52755905511816);
+  static const ScriptPageFormat a6 = ScriptPageFormat(
+    297.6377952755906,
+    419.52755905511816,
+  );
 
   static const ScriptPageFormat letter = ScriptPageFormat(612.0, 792.0);
 
@@ -549,7 +660,12 @@ class ScriptPageFormat {
 }
 
 class ScriptPageLayout extends ScriptWidget {
-  const ScriptPageLayout({this.header, this.footer, this.body = const [], this.footnoteBuilder});
+  const ScriptPageLayout({
+    this.header,
+    this.footer,
+    this.body = const [],
+    this.footnoteBuilder,
+  });
 
   final ScriptPageSection? header;
 
@@ -561,7 +677,10 @@ class ScriptPageLayout extends ScriptWidget {
 }
 
 class ScriptPageNumberSettings {
-  const ScriptPageNumberSettings({this.style = ScriptPageNumberStyle.arabic, this.startAt = 1});
+  const ScriptPageNumberSettings({
+    this.style = ScriptPageNumberStyle.arabic,
+    this.startAt = 1,
+  });
 
   final ScriptPageNumberStyle style;
 
@@ -569,9 +688,11 @@ class ScriptPageNumberSettings {
 }
 
 class ScriptPageSection {
-  ScriptPageSection.fixed({required this.height, required this.builder}) : prototype = null;
+  ScriptPageSection.fixed({required this.height, required this.builder})
+    : prototype = null;
 
-  ScriptPageSection.prototyped({required this.prototype, required this.builder}) : height = null;
+  ScriptPageSection.prototyped({required this.prototype, required this.builder})
+    : height = null;
 
   final double? height;
 
@@ -581,7 +702,12 @@ class ScriptPageSection {
 }
 
 class ScriptRepeater extends ScriptWidget {
-  const ScriptRepeater(this.text, {this.fontSize = 12.0, this.font, this.lineHeight = 1.3});
+  const ScriptRepeater(
+    this.text, {
+    this.fontSize = 12.0,
+    this.font,
+    this.lineHeight = 1.3,
+  });
 
   final String text;
 
@@ -593,7 +719,10 @@ class ScriptRepeater extends ScriptWidget {
 }
 
 class ScriptResetPageNumber extends ScriptWidget {
-  const ScriptResetPageNumber({this.style = ScriptPageNumberStyle.arabic, this.startAt = 1});
+  const ScriptResetPageNumber({
+    this.style = ScriptPageNumberStyle.arabic,
+    this.startAt = 1,
+  });
 
   final ScriptPageNumberStyle style;
 
@@ -601,7 +730,12 @@ class ScriptResetPageNumber extends ScriptWidget {
 }
 
 class ScriptRichText extends ScriptWidget {
-  const ScriptRichText({required this.children, this.fontSize = 12.0, this.font, this.lineHeight = 1.3});
+  const ScriptRichText({
+    required this.children,
+    this.fontSize = 12.0,
+    this.font,
+    this.lineHeight = 1.3,
+  });
 
   final List<ScriptTextSpan> children;
 
@@ -708,7 +842,13 @@ class ScriptTableRow {
 }
 
 class ScriptText extends ScriptWidget {
-  const ScriptText(this.text, {this.style = const ScriptTextStyle(), this.fontSize, this.font, this.lineHeight = 1.3});
+  const ScriptText(
+    this.text, {
+    this.style = const ScriptTextStyle(),
+    this.fontSize,
+    this.font,
+    this.lineHeight = 1.3,
+  });
 
   final String text;
 
@@ -722,7 +862,8 @@ class ScriptText extends ScriptWidget {
 }
 
 class ScriptTextSpan {
-  ScriptTextSpan(this.text, {ScriptTextStyle? style, this.metadata}) : style = style ?? ScriptTextStyle.normal;
+  ScriptTextSpan(this.text, {ScriptTextStyle? style, this.metadata})
+    : style = style ?? ScriptTextStyle.normal;
 
   final String text;
 
@@ -756,7 +897,9 @@ class ScriptTextStyle {
     this.decorationThickness,
     this.leftPadding,
     this.textColor,
-  }) : fontFamily = font != null ? ScriptFontFamily.fromFont(font) : ScriptFontFamily.fromFont(ScriptFont.helvetica);
+  }) : fontFamily = font != null
+           ? ScriptFontFamily.fromFont(font)
+           : ScriptFontFamily.fromFont(ScriptFont.helvetica);
 
   static const ScriptTextStyle normal = ScriptTextStyle(
     fontSize: 12.0,
@@ -770,7 +913,10 @@ class ScriptTextStyle {
 
   static const ScriptTextStyle large = ScriptTextStyle(fontSize: 14.0);
 
-  static const ScriptTextStyle superscript = ScriptTextStyle(fontSize: 8.0, yOffsetFactor: 0.4);
+  static const ScriptTextStyle superscript = ScriptTextStyle(
+    fontSize: 8.0,
+    yOffsetFactor: 0.4,
+  );
 
   final double? fontSize;
 
@@ -816,7 +962,11 @@ class ScriptTtfFont extends ScriptFont {
 }
 
 class ScriptUnderline extends ScriptWidget {
-  const ScriptUnderline({required this.child, this.color = ScriptColor.black, this.thickness = 1.0});
+  const ScriptUnderline({
+    required this.child,
+    this.color = ScriptColor.black,
+    this.thickness = 1.0,
+  });
 
   final ScriptWidget child;
 

@@ -346,12 +346,17 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
     clear();
     double totalHeight = 0;
 
+    final List<MetadataRecord> metadata = [];
+
     if (lineBreakMode == LineBreakMode.greedy) {
       final greedyResult = wrapResult as GreedyWrapResult;
       for (final lineSpans in greedyResult.lines) {
         double maxFontSizeInLine = 0.0;
         for (final span in lineSpans) {
           maxFontSizeInLine = max(maxFontSizeInLine, span.style.resolve().fontSize);
+          if (span.metadata != null) {
+            metadata.addAll(span.metadata!);
+          }
         }
         if (maxFontSizeInLine == 0) maxFontSizeInLine = fontSize;
         final fixedLineHeightFont = spans.first.style.resolve().font;
@@ -371,6 +376,9 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
         for (final spec in lineSpecs) {
           if (spec is Box) {
             maxFontSizeInLine = max(maxFontSizeInLine, spec.style.fontSize);
+            if (spec.sourceSpan?.metadata != null) {
+              metadata.addAll(spec.sourceSpan!.metadata!);
+            }
           }
         }
         if (maxFontSizeInLine == 0.0) maxFontSizeInLine = fontSize;
@@ -401,7 +409,7 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
       }
     }
     size = Size(maxWidth, totalHeight);
-    return LayoutResult(size: size);
+    return LayoutResult(size: size, metadata: metadata);
   }
 
   @override

@@ -1471,12 +1471,13 @@ class FootnoteLayoutInfo {
 
   /// The position of the footnote marker within the laid-out body text.
   /// currently is not set correctly, but most of the architecture needed
-  /// to support it is in place.
-  double position;
+  /// to support it is in place. The way this would work is each node would
+  /// add it's own padding to this position each level up the tree.
+  final double position;
 
   final int number;
 
-  FootnoteLayoutInfo({required this.content, required this.position, required this.number});
+  const FootnoteLayoutInfo({required this.content, required this.position, required this.number});
 }
 
 class RenderFormattedText extends RenderNode with RenderObjectWithChildMixin, RenderSlice {
