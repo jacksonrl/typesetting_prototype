@@ -145,7 +145,7 @@ dynamic _convertJSAnyToDart(JSAny? jsValue) {
   if (jsValue.isA<JSArray>()) return (jsValue as JSArray).toDart.map(_convertJSAnyToDart).toList();
   if (jsValue.isA<JSObject>()) {
     jsValue as JSObject;
-    if (getProperty<JSBoolean>(jsValue, '_isFootnoteLayoutInfo')?.toDart ?? false) {
+    if(getProperty<JSString>(jsValue, '_type')?.toDart == "ScriptFootnoteLayoutInfo"){
       final content = (getProperty<JSString>(jsValue, 'content')!).toDart;
       return FootnoteLayoutInfo(content: content, position: 0.0, number: 0);
     }

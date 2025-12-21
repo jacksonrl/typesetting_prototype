@@ -429,7 +429,7 @@ class ScriptFootnoteItem {
 }
 
 class ScriptFootnoteLayoutInfo {
-  ScriptFootnoteLayoutInfo({
+  const ScriptFootnoteLayoutInfo({
     required this.content,
     required this.position,
     required this.number,
@@ -437,7 +437,7 @@ class ScriptFootnoteLayoutInfo {
 
   final String content;
 
-  double position;
+  final double position;
 
   final int number;
 }
