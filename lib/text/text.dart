@@ -422,7 +422,7 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final lineBreakSettings = getLineBreakSettings();
     final lineBreakMode = lineBreakSettings.mode;
 
@@ -567,7 +567,7 @@ class RenderRemainderRichTextLines extends RenderNode with ContainerRenderNodeMi
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final List<PositionedPrimitive> placedLines = [];
     final List<MetadataRecord> metadataForThisSlice = [];
     double currentY = 0;
@@ -695,7 +695,7 @@ class RenderLineBreakConfiguration extends RenderNode with RenderObjectWithChild
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     if (child == null) {
       return const SliceLayoutResult(paintedPrimitives: [], consumedSize: Size.zero);
     }

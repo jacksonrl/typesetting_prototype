@@ -117,7 +117,7 @@ class RenderImage extends RenderNode with RenderSlice {
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final layoutResult = layout(
       LayoutContext(pwContext: context.pwContext, constraints: context.constraints, metadata: context.metadata),
     );

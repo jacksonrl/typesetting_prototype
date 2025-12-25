@@ -286,7 +286,7 @@ class RenderTable extends RenderNode with RenderSlice {
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     _isPrepared = false;
     _prepareCellsAndChildren();
 

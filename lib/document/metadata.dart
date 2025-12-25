@@ -63,7 +63,7 @@ class RenderMetadataMarker extends RenderNode with RenderObjectWithChildMixin, R
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     if (child == null) {
       return SliceLayoutResult(paintedPrimitives: [], consumedSize: Size.zero, remainder: null, metadata: _ownMetadata);
     }

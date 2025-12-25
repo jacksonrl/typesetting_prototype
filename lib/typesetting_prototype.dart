@@ -185,7 +185,11 @@ mixin RenderSlice on RenderNode {
   /// Lays out a portion of this node's content that fits within a given vertical space.
   ///
   /// See [RenderSlice] for more details.
-  SliceLayoutResult layoutSlice(SliceLayoutContext context);
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context);
+
+  SliceLayoutResult layoutSlice(SliceLayoutContext context){
+    return performLayoutSlice(context);
+  }
 }
 
 mixin RenderObjectWithChildMixin on RenderNode {
@@ -246,7 +250,7 @@ class RenderPadding extends RenderNode with RenderObjectWithChildMixin, RenderSl
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final verticalPadding = padding.vertical;
     if (context.availableHeight < verticalPadding) {
       return SliceLayoutResult(paintedPrimitives: [], consumedSize: Size.zero, remainder: this);
@@ -460,7 +464,7 @@ class RenderFlowFill extends RenderNode with RenderObjectWithChildMixin, RenderS
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final fillHeight = context.availableHeight;
     if (fillHeight <= 0) {
       _size = Size.zero;
@@ -519,7 +523,7 @@ class RenderKeepTogether extends RenderNode with RenderSlice {
   void paint(PaintingContext context, Offset offset) {}
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     if (firstChild == null || secondChild == null) {
       final child = firstChild ?? secondChild;
       if (child is RenderSlice) {
@@ -743,7 +747,7 @@ class RenderFlow extends RenderNode with ContainerRenderNodeMixin, RenderSlice {
 
   @override
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final List<PositionedPrimitive> placedThisSlice = [];
     final List<RenderNode> nodesToLayout = List.of(children);
     final List<MetadataRecord> metadataThisSlice = [];
@@ -998,7 +1002,7 @@ class RenderMultiColumnFlow extends RenderNode with ContainerRenderNodeMixin, Re
   void paint(PaintingContext context, Offset offset) {}
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final List<RenderNode> nodesToLayout = List.of(children);
     final List<MetadataRecord> metadataThisSlice = [];
 
@@ -1127,7 +1131,7 @@ class RenderSyncedColumns extends RenderNode with RenderSlice {
   void paint(PaintingContext context, Offset offset) {}
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     assert(_topChildren.length == _bottomChildren.length);
     final List<RenderNode> topNodesForThisPage = [];
     final List<RenderNode> bottomNodesForThisPage = [];
@@ -1227,7 +1231,7 @@ class RenderResetPageNumber extends RenderNode with RenderSlice {
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     return SliceLayoutResult(
       paintedPrimitives: const [],
       consumedSize: Size.zero,
@@ -1596,7 +1600,7 @@ class RenderFormattedText extends RenderNode with RenderObjectWithChildMixin, Re
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     _parseAndBuildChild(
       LayoutContext(pwContext: context.pwContext, constraints: context.constraints, metadata: context.metadata),
     );
@@ -1818,7 +1822,7 @@ class RenderDecoratedBox extends RenderNode with RenderObjectWithChildMixin, Ren
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final border = decoration.border;
     if (child == null || border == null || child is! RenderSlice) {
       final layoutContext = LayoutContext(
@@ -2019,7 +2023,7 @@ class RenderAlign extends RenderNode with RenderObjectWithChildMixin, RenderSlic
   }
 
   @override
-  SliceLayoutResult layoutSlice(SliceLayoutContext context) {
+  SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final layoutContext = LayoutContext(
       pwContext: context.pwContext,
       constraints: context.constraints,
