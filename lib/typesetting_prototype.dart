@@ -36,6 +36,19 @@ class LayoutContext {
   }
 }
 
+class SliceLayoutContext {
+  final pw.Context pwContext;
+  final BoxConstraints constraints;
+  final double availableHeight;
+  final List<MetadataRecord> metadata;
+  const SliceLayoutContext({
+    required this.pwContext,
+    required this.constraints,
+    required this.availableHeight,
+    required this.metadata,
+  });
+}
+
 class PaintingContext {
   final pw.Context pdfContext;
   final PdfGraphics canvas;
@@ -108,19 +121,6 @@ abstract class RenderNode {
       printTree(node.child!, indent: childIndent, isLast: true);
     }
   }
-}
-
-class SliceLayoutContext {
-  final pw.Context pwContext;
-  final BoxConstraints constraints;
-  final double availableHeight;
-  final List<MetadataRecord> metadata;
-  const SliceLayoutContext({
-    required this.pwContext,
-    required this.constraints,
-    required this.availableHeight,
-    required this.metadata,
-  });
 }
 
 class PositionedPrimitive {
