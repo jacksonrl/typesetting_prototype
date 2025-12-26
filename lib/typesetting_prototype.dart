@@ -294,6 +294,22 @@ mixin SlottedContainerRenderNodeMixin<SlotType> on RenderNode {
   List<RenderNode> get children => _slots.values.toList();
 }
 
+mixin MultiListSlotRenderNodeMixin<T> on RenderNode {
+  final Map<T, List<RenderNode>> _slotChildren = {};
+
+  @override
+  List<RenderNode> get children => _slotChildren.values.expand((l) => l).toList();
+
+  List<RenderNode> childrenForSlot(T slot) {
+    return _slotChildren[slot] ?? const [];
+  }
+
+  void addToSlot(T slot, RenderNode child) {
+    _slotChildren.putIfAbsent(slot, () => []).add(child);
+    child.parent = this;
+  }
+}
+
 class RenderPadding extends RenderNode with RenderObjectWithChildMixin, RenderSlice {
   final EdgeInsets padding;
   RenderPadding(this.padding);
@@ -1147,9 +1163,16 @@ class RenderMultiColumnFlow extends RenderNode with ContainerRenderNodeMixin, Re
   }
 }
 
-class RenderSyncedColumns extends RenderNode with RenderSlice {
-  final List<RenderNode> _topChildren = [];
-  final List<RenderNode> _bottomChildren = [];
+enum SyncedColumnSlot { top, bottom }
+
+class RenderSyncedColumns extends RenderNode with RenderSlice, MultiListSlotRenderNodeMixin<SyncedColumnSlot> {
+  
+  void addTop(RenderNode child) => addToSlot(SyncedColumnSlot.top, child);
+  void addBottom(RenderNode child) => addToSlot(SyncedColumnSlot.bottom, child);
+  
+  List<RenderNode> get _topChildren => childrenForSlot(SyncedColumnSlot.top);
+  List<RenderNode> get _bottomChildren => childrenForSlot(SyncedColumnSlot.bottom);
+
   final int topColumnCount;
   final double topColumnSpacing;
   final int bottomColumnCount;
@@ -1169,9 +1192,6 @@ class RenderSyncedColumns extends RenderNode with RenderSlice {
     this.bottomColumnSpacing = 10.0,
     this.spacing = 10.0,
   });
-
-  void addTop(RenderNode child) => _topChildren.add(child);
-  void addBottom(RenderNode child) => _bottomChildren.add(child);
 
   @override
   LayoutResult performLayout(LayoutContext context){
