@@ -1179,12 +1179,6 @@ class RenderSyncedColumns extends RenderNode with RenderSlice, MultiListSlotRend
   final double bottomColumnSpacing;
   final double spacing;
 
-  @override
-  List<RenderNode> get children => [
-    ..._topChildren,
-    ..._bottomChildren
-  ];
-
   RenderSyncedColumns({
     required this.topColumnCount,
     this.topColumnSpacing = 10.0,
