@@ -263,19 +263,17 @@ class RenderTable extends RenderNode with RenderSlice {
   }
 
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     _isPrepared = false;
     _prepareCellsAndChildren();
 
-    final layoutContext = this.layoutContext!;
-    final constraints = this.constraints!;
 
-    _columnWidths = _calculateColumnWidths(constraints, layoutContext);
+    _columnWidths = _calculateColumnWidths(context.constraints, context);
 
     _rowHeights.clear();
     double totalHeight = 0;
     for (int i = 0; i < rows.length; i++) {
-      final rowHeight = _layoutRowAndDetermineHeight(i, layoutContext);
+      final rowHeight = _layoutRowAndDetermineHeight(i, context);
       _rowHeights.add(rowHeight);
       totalHeight += rowHeight;
     }
@@ -290,11 +288,7 @@ class RenderTable extends RenderNode with RenderSlice {
     _isPrepared = false;
     _prepareCellsAndChildren();
 
-    final layoutContext = LayoutContext(
-      pwContext: context.pwContext,
-      constraints: context.constraints,
-      metadata: context.metadata,
-    );
+    final layoutContext = context.createLayoutContext();
 
     _columnWidths = _calculateColumnWidths(context.constraints, layoutContext);
 
@@ -365,10 +359,8 @@ class RenderTable extends RenderNode with RenderSlice {
                 minHeight: effectiveCellHeight,
                 maxHeight: effectiveCellHeight,
               );
-              final fillLayoutContext = LayoutContext(
-                pwContext: context.pwContext,
-                constraints: fillConstraints,
-                metadata: context.metadata,
+              final fillLayoutContext = context.createLayoutContext(
+                constraints: fillConstraints
               );
               child.layout(fillLayoutContext);
               childOffsetY = 0;

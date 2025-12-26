@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:typesetting_prototype/debug/debug.dart';
 
 import '../typesetting_prototype.dart';
 import '../platform/pdf_saver.dart';
@@ -11,12 +12,14 @@ class Document {
   final PageLayout Function(DocumentMetadataRegistry registry)? tocBuilder;
   final PageFormat pageFormat;
   final EdgeInsets pageMargin;
+  final bool debug;
 
   Document({
     required this.body,
     this.tocBuilder,
     this.pageFormat = PageFormat.a4,
     this.pageMargin = const EdgeInsets.all(30),
+    this.debug = false,
   });
 
   Future<Uint8List> save() async {
@@ -25,8 +28,16 @@ class Document {
 
     final contentWidth = pageFormat.width - pageMargin.horizontal;
     final contentHeight = pageFormat.height - pageMargin.vertical;
+
     final pageConstraints = BoxConstraints(maxWidth: contentWidth, maxHeight: contentHeight);
-    final sharedLayoutContext = LayoutContext(pwContext: sharedPwContext, constraints: pageConstraints, metadata: []);
+    
+    final treeBuilder = debug ? DebugTreeBuilder() : null;
+    final sharedLayoutContext = LayoutContext(
+      pwContext: sharedPwContext,
+      constraints: pageConstraints,
+       metadata: [],
+       onLayout: treeBuilder?.onLayout ?? (n, r, d) {}, 
+    );
 
     final bodyLayout = body.createRenderNode() as RenderPageLayout;
     final rawBodyRecords = bodyLayout.buildPages(sharedLayoutContext);
@@ -74,6 +85,10 @@ class Document {
         allRecords: finalRegistry.records,
         pageNumberMap: tocPageNumberMap,
       );
+    }
+
+    if (debug) {
+      treeBuilder?.printTree();
     }
 
     for (int i = 0; i < tocPageCount; i++) {

@@ -71,9 +71,9 @@ class RenderImage extends RenderNode with RenderSlice {
   RenderImage(this.imageSource, {this.width, this.height});
 
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     try {
-      _pdfImage = ImageManager.resolveImage(imageSource, layoutContext!.pwContext);
+      _pdfImage = ImageManager.resolveImage(imageSource, context.pwContext);
     } catch (e) {
       print('⚠️ Image loading failed: $e');
       size = Size.zero;
@@ -99,7 +99,7 @@ class RenderImage extends RenderNode with RenderSlice {
       finalHeight = _pdfImage!.height.toDouble();
     }
 
-    size = constraints!.constrain(Size(finalWidth, finalHeight));
+    size = context.constraints.constrain(Size(finalWidth, finalHeight));
     return LayoutResult(size: size);
   }
 
@@ -119,7 +119,7 @@ class RenderImage extends RenderNode with RenderSlice {
   @override
   SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
     final layoutResult = layout(
-      LayoutContext(pwContext: context.pwContext, constraints: context.constraints, metadata: context.metadata),
+      context.createLayoutContext()
     );
 
     if (size.height <= context.availableHeight) {

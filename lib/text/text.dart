@@ -163,7 +163,7 @@ class RenderRichTextLine extends RenderNode {
   RenderRichTextLine(this.spans, {required this.fixedHeight});
 
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     double totalWidth = 0;
     if (spans.isNotEmpty) {
       totalWidth += spans.first.style.resolve().leftPadding;
@@ -171,10 +171,10 @@ class RenderRichTextLine extends RenderNode {
 
     for (final span in spans) {
       final style = span.style.resolve();
-      final pdfFont = FontManager.getFont(style.font, layoutContext!.pwContext);
+      final pdfFont = FontManager.getFont(style.font, context.pwContext);
       totalWidth += pdfFont.stringMetrics(span.text).width * style.fontSize;
     }
-    size = constraints!.constrain(Size(totalWidth, fixedHeight));
+    size = context.constraints.constrain(Size(totalWidth, fixedHeight));
     return LayoutResult(size: size);
   }
 
@@ -318,8 +318,8 @@ class RenderKnuthPlassTextLine extends RenderNode {
   }
 
   @override
-  LayoutResult performLayout() {
-    size = constraints!.constrain(Size(constraints!.maxWidth, fixedHeight));
+  LayoutResult performLayout(LayoutContext context) {
+    size = context.constraints.constrain(Size(context.constraints.maxWidth, fixedHeight));
     return (LayoutResult(size: size));
   }
 }
@@ -330,8 +330,19 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
   final double lineHeight;
   RenderRichText(this.spans, {required this.fontSize, required this.lineHeight});
 
+  LineBreakSettings getLineBreakSettings() {
+    RenderNode? current = this;
+    while (current != null) {
+      if (current is RenderLineBreakConfiguration) {
+        return current.settings;
+      }
+      current = current.parent;
+    }
+    return LineBreakSettings.defaultSettings;
+  }
+
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     final lineBreakSettings = getLineBreakSettings();
     final lineBreakMode = lineBreakSettings.mode;
 
@@ -339,8 +350,8 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
       mode: lineBreakMode,
       spans: spans,
       fontSize: fontSize, // This is a fallback/default
-      maxWidth: constraints!.maxWidth,
-      pwContext: layoutContext!.pwContext,
+      maxWidth: context.constraints.maxWidth,
+      pwContext: context.pwContext,
     );
 
     clear();
@@ -361,7 +372,7 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
         if (maxFontSizeInLine == 0) maxFontSizeInLine = fontSize;
         final fixedLineHeightFont = spans.first.style.resolve().font;
         final fixedLineHeight =
-            FontManager.getFont(fixedLineHeightFont, layoutContext!.pwContext).emptyLineHeight *
+            FontManager.getFont(fixedLineHeightFont, context.pwContext).emptyLineHeight *
             maxFontSizeInLine *
             lineHeight;
 
@@ -384,7 +395,7 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
         if (maxFontSizeInLine == 0.0) maxFontSizeInLine = fontSize;
         final fixedLineHeightFont = spans.first.style.resolve().font;
         final fixedLineHeight =
-            FontManager.getFont(fixedLineHeightFont, layoutContext!.pwContext).emptyLineHeight *
+            FontManager.getFont(fixedLineHeightFont, context.pwContext).emptyLineHeight *
             maxFontSizeInLine *
             lineHeight;
 
@@ -400,7 +411,7 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
     }
 
     double maxWidth = 0;
-    final childLayoutContext = layoutContext!.copyWith(constraints: BoxConstraints(maxWidth: constraints!.maxWidth));
+    final childLayoutContext = context.copyWith(constraints: BoxConstraints(maxWidth: context.constraints.maxWidth));
     for (final child in children) {
       child.layout(childLayoutContext);
       totalHeight += child.size.height;
@@ -440,11 +451,7 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
     double maxWidth = 0;
     WrapResult? remainingTextLines;
 
-    final childLayoutContext = LayoutContext(
-      pwContext: context.pwContext,
-      constraints: context.constraints,
-      metadata: context.metadata,
-    );
+    final childLayoutContext = context.createLayoutContext();
 
     if (lineBreakMode == LineBreakMode.greedy) {
       final greedyResult = wrapResult as GreedyWrapResult;
@@ -470,6 +477,7 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
           }
 
           final lineNode = RenderRichTextLine(lineSpans, fixedHeight: dynamicLineHeight);
+          lineNode.parent = this;
           lineNode.layout(childLayoutContext);
           placedLines.add(PositionedPrimitive(lineNode, Offset(0, currentY)));
           currentY += dynamicLineHeight;
@@ -508,6 +516,7 @@ class RenderRichText extends RenderNode with ContainerRenderNodeMixin, RenderSli
             maxFontSizeInLine: maxFontSizeInLine,
             fixedHeight: dynamicLineHeight,
           );
+          lineNode.parent = this;
           lineNode.layout(childLayoutContext);
           placedLines.add(PositionedPrimitive(lineNode, Offset(0, currentY)));
           currentY += dynamicLineHeight;
@@ -553,7 +562,7 @@ class RenderRemainderRichTextLines extends RenderNode with ContainerRenderNodeMi
   });
 
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     throw UnimplementedError();
   }
 
@@ -574,11 +583,7 @@ class RenderRemainderRichTextLines extends RenderNode with ContainerRenderNodeMi
     double maxWidth = 0;
     WrapResult? newRemaining;
 
-    final childLayoutContext = LayoutContext(
-      pwContext: context.pwContext,
-      constraints: context.constraints,
-      metadata: context.metadata,
-    );
+    final childLayoutContext = context.createLayoutContext();
 
     if (lineBreakMode == LineBreakMode.greedy) {
       final greedyResult = remainingTextLines as GreedyWrapResult;
@@ -604,6 +609,7 @@ class RenderRemainderRichTextLines extends RenderNode with ContainerRenderNodeMi
             }
           }
           final lineNode = RenderRichTextLine(lineSpans, fixedHeight: dynamicLineHeight);
+          lineNode.parent = this;
           lineNode.layout(childLayoutContext);
           placedLines.add(PositionedPrimitive(lineNode, Offset(0, currentY)));
           currentY += dynamicLineHeight;
@@ -643,7 +649,9 @@ class RenderRemainderRichTextLines extends RenderNode with ContainerRenderNodeMi
             maxFontSizeInLine: maxFontSizeInLine,
             fixedHeight: dynamicLineHeight,
           );
+          lineNode.parent = this;
           lineNode.layout(childLayoutContext);
+          lineNode.parent = null;
           placedLines.add(PositionedPrimitive(lineNode, Offset(0, currentY)));
           currentY += dynamicLineHeight;
           if (lineNode.size.width > maxWidth) maxWidth = lineNode.size.width;
@@ -680,11 +688,11 @@ class RenderLineBreakConfiguration extends RenderNode with RenderObjectWithChild
   RenderLineBreakConfiguration(this.settings);
 
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     if (child == null) {
       return LayoutResult.zero;
     }
-    final result = child!.layout(layoutContext!);
+    final result = child!.layout(context);
     size = result.size;
     return result;
   }
@@ -700,11 +708,7 @@ class RenderLineBreakConfiguration extends RenderNode with RenderObjectWithChild
       return const SliceLayoutResult(paintedPrimitives: [], consumedSize: Size.zero);
     }
     if (child is! RenderSlice) {
-      final layoutContext = LayoutContext(
-        pwContext: context.pwContext,
-        constraints: context.constraints,
-        metadata: context.metadata,
-      );
+      final layoutContext = context.createLayoutContext();
       final childResult = child!.layout(layoutContext);
       if (childResult.size.height <= context.availableHeight) {
         return SliceLayoutResult(

@@ -46,9 +46,9 @@ class RenderMetadataMarker extends RenderNode with RenderObjectWithChildMixin, R
   List<MetadataRecord> get _ownMetadata => [MetadataRecord(key: key, value: value)];
 
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     if (child != null) {
-      final childResult = child!.layout(layoutContext!);
+      final childResult = child!.layout(context);
 
       return LayoutResult(size: childResult.size, metadata: [..._ownMetadata, ...childResult.metadata]);
     } else {
@@ -69,11 +69,7 @@ class RenderMetadataMarker extends RenderNode with RenderObjectWithChildMixin, R
     }
 
     if (child is! RenderSlice) {
-      final childLayoutContext = LayoutContext(
-        pwContext: context.pwContext,
-        constraints: context.constraints,
-        metadata: context.metadata,
-      );
+      final childLayoutContext = context.createLayoutContext();
       final childResult = child!.layout(childLayoutContext);
       final combinedMetadata = [..._ownMetadata, ...childResult.metadata];
 

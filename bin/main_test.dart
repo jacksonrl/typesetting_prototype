@@ -2,6 +2,7 @@ import 'package:typesetting_prototype/typesetting_prototype.dart';
 
 void main() async {
   final doc = Document(
+    debug: true,
     body: PageLayout(
       header: PageSection.fixed(
         height: 25,

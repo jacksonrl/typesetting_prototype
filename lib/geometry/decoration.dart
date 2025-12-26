@@ -55,7 +55,7 @@ class RenderPartialBorder extends RenderNode {
   });
 
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     return LayoutResult(size: size);
   }
 

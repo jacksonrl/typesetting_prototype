@@ -60,6 +60,7 @@ class RenderPageLayout extends RenderNode {
   RenderPageLayout({required this.header, required this.footer, required this.body, this.footnoteBuilder});
 
   List<MetadataRecord> buildPages(LayoutContext layoutContext) {
+    
     _finalPages.clear();
     pageContentHeight = layoutContext.constraints.maxHeight;
     RenderNode? remainingBody = body;
@@ -69,9 +70,13 @@ class RenderPageLayout extends RenderNode {
     var runningSettings = const PageNumberSettings();
 
     final headerPrototypeNode = header?.prototype?.createRenderNode() ?? SizedBox.shrink().createRenderNode();
+    headerPrototypeNode.parent = this;
     headerPrototypeNode.layout(layoutContext);
     final footerPrototypeNode = footer?.prototype?.createRenderNode() ?? SizedBox.shrink().createRenderNode();
+    footerPrototypeNode.parent = this;
     footerPrototypeNode.layout(layoutContext);
+
+    body.parent = this;
 
     while (remainingBody != null) {
       final double headerHeight = header?.height ?? headerPrototypeNode.size.height;
@@ -96,9 +101,7 @@ class RenderPageLayout extends RenderNode {
         if (iteration > maxIterations) {
           print("Warning: Footnote layout did not converge after $maxIterations iterations. Using last layout.");
           // On timeout, we must accept the last calculated slice as final
-          final bodySliceContext = SliceLayoutContext(
-            pwContext: layoutContext.pwContext,
-            constraints: layoutContext.constraints,
+          final bodySliceContext = layoutContext.createSliceLayoutContext(
             availableHeight: bodyAvailableHeight,
             metadata: currentMetadata,
           );
@@ -114,6 +117,7 @@ class RenderPageLayout extends RenderNode {
 
           if (footnotesOnThisPage.isNotEmpty && footnoteBuilder != null) {
             final builder = footnoteBuilder!(footnoteItems).createRenderNode();
+            builder.parent = this;
             builder.layout(layoutContext);
             finalFootnoteBlock = builder;
           } else {
@@ -122,9 +126,7 @@ class RenderPageLayout extends RenderNode {
           break;
         }
 
-        final bodySliceContext = SliceLayoutContext(
-          pwContext: layoutContext.pwContext,
-          constraints: layoutContext.constraints,
+        final bodySliceContext = layoutContext.createSliceLayoutContext(
           availableHeight: bodyAvailableHeight,
           metadata: currentMetadata,
         );
@@ -149,12 +151,9 @@ class RenderPageLayout extends RenderNode {
         double footnotesHeight = 0;
         RenderNode? currentFootnoteBlock;
         if (footnotesOnThisPage.isNotEmpty && footnoteBuilder != null) {
-          final footnoteLayoutContext = LayoutContext(
-            pwContext: layoutContext.pwContext,
-            constraints: layoutContext.constraints,
-            metadata: layoutContext.metadata,
-          );
+          final footnoteLayoutContext = layoutContext.copyWith();
           final builder = footnoteBuilder!(footnoteItems).createRenderNode();
+          builder.parent = this;
           footnotesHeight = builder.layout(footnoteLayoutContext).size.height;
           currentFootnoteBlock = builder;
         }
@@ -212,6 +211,13 @@ class RenderPageLayout extends RenderNode {
       remainingBody = finalBodySliceResult.remainder;
       currentPageIndex++;
     }
+
+    layoutContext.onLayout(
+      this, 
+      LayoutResult(size: layoutContext.constraints.biggest), 
+      layoutContext.depth
+    );
+
     return discoveredRecords;
   }
 
@@ -324,9 +330,11 @@ class RenderPageLayout extends RenderNode {
 
         final finalHeaderNode =
             header?.builder(finalPageContext).createRenderNode() ?? SizedBox(height: 0).createRenderNode();
+        finalHeaderNode.parent = this;
         finalHeaderNode.layout(headerLayoutContext);
         final finalFooterNode =
             footer?.builder(finalPageContext).createRenderNode() ?? SizedBox(height: 0).createRenderNode();
+        finalFooterNode.parent = this;
         finalFooterNode.layout(footerLayoutContext);
 
         _finalPages[globalPageIndex] = (
@@ -354,7 +362,7 @@ class RenderPageLayout extends RenderNode {
   }
 
   @override
-  LayoutResult performLayout() {
+  LayoutResult performLayout(LayoutContext context) {
     return LayoutResult(size: Size.zero);
   }
 }
