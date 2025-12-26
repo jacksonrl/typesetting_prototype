@@ -651,7 +651,6 @@ class RenderRemainderRichTextLines extends RenderNode with ContainerRenderNodeMi
           );
           lineNode.parent = this;
           lineNode.layout(childLayoutContext);
-          lineNode.parent = null;
           placedLines.add(PositionedPrimitive(lineNode, Offset(0, currentY)));
           currentY += dynamicLineHeight;
           if (lineNode.size.width > maxWidth) maxWidth = lineNode.size.width;
