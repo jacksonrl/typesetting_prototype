@@ -272,21 +272,16 @@ mixin ContainerRenderNodeMixin on RenderNode {
 mixin SlottedContainerRenderNodeMixin<SlotType> on RenderNode {
   final Map<SlotType, RenderNode> _slots = {};
 
-  /// Returns the child currently assigned to the given slot, or null.
   RenderNode? childForSlot(SlotType slot) => _slots[slot];
 
-  /// Assigns a child to a slot.
-  /// Automatically handles un-parenting the old child and parenting the new one.
   void setChildForSlot(SlotType slot, RenderNode? child) {
     final oldChild = _slots[slot];
     if (oldChild == child) return;
 
-    // 1. Detach old child
     if (oldChild != null) {
       oldChild.parent = null;
     }
 
-    // 2. Update storage and attach new child
     if (child != null) {
       _slots[slot] = child;
       child.parent = this;
@@ -295,8 +290,6 @@ mixin SlottedContainerRenderNodeMixin<SlotType> on RenderNode {
     }
   }
 
-  /// 3. AUTOMATIC INTROSPECTION
-  /// The static hierarchy dumper will now automatically see these children.
   @override
   List<RenderNode> get children => _slots.values.toList();
 }
