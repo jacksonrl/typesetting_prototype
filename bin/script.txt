@@ -1,0 +1,19 @@
+#set page(
+  format: "a4", 
+  margin: 30,
+  name: "My_Generated_Report" 
+)
+
+#set text(size: 11)
+
+#let title = "Monthly Status Report"
+
+#Text(title, size: 24, weight: "bold")
+#Underline(child: SizedBox(width: 500, height: 2))
+#SizedBox(height: 20)
+
+#Text("This PDF was generated from script.txt by runner.dart.")
+#SizedBox(height: 10)
+
+#set text(color: Color.blue)
+#Text("Filename determined by #set page(name: ...)")

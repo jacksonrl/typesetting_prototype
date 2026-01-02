@@ -1,5 +1,6 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:typesetting_prototype/script/script.dart';
 
 import '../geometry/geometry.dart';
 import '../geometry/decoration.dart';
@@ -19,6 +20,8 @@ export '../image/image.dart';
 export '../style/style.dart';
 export '../text/font.dart';
 export '../layout/table.dart';
+
+export 'script/script.dart'; 
 
 
 typedef LayoutCallback = void Function(RenderNode node, LayoutResult result, int depth);
@@ -1551,124 +1554,47 @@ class RenderFormattedText extends RenderNode with RenderObjectWithChildMixin, Re
   final FontFamily fontFamily;
   final double fontSize;
   final double lineHeight;
-  final Widget Function(List<Widget> richTexts)? builder;
-  final double? paragraphIndent;
-  final int newlinesForBreak;
-  final bool indentFirstParagraph;
 
   RenderFormattedText(
     this.text, {
     required this.fontFamily,
     required this.fontSize,
     required this.lineHeight,
-    this.builder,
-    this.paragraphIndent,
-    required this.indentFirstParagraph,
-    required this.newlinesForBreak,
   });
 
-  void _parseAndBuildChild(LayoutContext context) {
-    final processedText = text.replaceAll('\t', '');
-    final int startingFootnoteCount = context.metadata.where((r) => r.key == '__footnote').length;
-    int localFootnoteCounter = 0;
+  void _buildChild(LayoutContext context) {
+    if (child != null) return; // Already built
 
-    final List<String> paragraphs;
-    if (newlinesForBreak <= 0) {
-      final singleParagraph = processedText
-          .split('\n')
-          .map((line) => line.trim())
-          .where((line) => line.isNotEmpty)
-          .join(' ');
-      paragraphs = [singleParagraph];
-    } else {
-      final paragraphSeparator = RegExp(r'([ \t]*\n){' + newlinesForBreak.toString() + r',}');
-      paragraphs = processedText
-          .split(paragraphSeparator)
-          .map((p) {
-            return p.split('\n').map((line) => line.trim()).where((line) => line.isNotEmpty).join(' ');
-          })
-          .where((p) => p.isNotEmpty)
-          .toList();
-    }
+    final scriptEngine = ScriptEngine();
+    
+    // Pass context-specific data into the script's global scope
+    final initialData = {
+      'defaultFontSize': fontSize,
+      // You can add more global variables here, e.g., page number, etc.
+      '__footnote_count': context.metadata.where((r) => r.key == '__footnote').length,
+    };
 
-    final List<Widget> richTextWidgets = [];
-    final baseStyle = TextStyle(fontFamily: fontFamily, fontSize: fontSize);
-    final regex = RegExp(r'#(\w+)\[(.*?)\]', dotAll: true);
+    final rootWidget = scriptEngine.parseAndBuild(text, initialData);
 
-    for (final (paragraphIndex, paragraph) in paragraphs.indexed) {
-      if (paragraph.trim().isEmpty) continue;
-
-      final List<TextSpan> spans = [];
-      int lastMatchEnd = 0;
-
-      for (final match in regex.allMatches(paragraph)) {
-        final precedingText = paragraph.substring(lastMatchEnd, match.start);
-        if (precedingText.isNotEmpty) {
-          spans.add(TextSpan(precedingText, style: baseStyle));
-        }
-
-        final tagName = match.group(1);
-        final content = match.group(2) ?? '';
-
-        switch (tagName) {
-          case 'bold':
-            spans.add(TextSpan(content, style: baseStyle.merge(const TextStyle(fontWeight: FontWeight.bold))));
-            break;
-          case 'italic':
-            spans.add(TextSpan(content, style: baseStyle.merge(const TextStyle(fontStyle: FontStyle.italic))));
-            break;
-          case 'footnote':
-            localFootnoteCounter++;
-            final globalFootnoteNumber = startingFootnoteCount + localFootnoteCounter;
-            final markerText = globalFootnoteNumber.toString();
-            final footnoteInfo = FootnoteLayoutInfo(content: content, number: globalFootnoteNumber, position: 0.0);
-            final record = MetadataRecord(key: '__footnote', value: footnoteInfo);
-            spans.add(TextSpan(markerText, metadata: [record], style: baseStyle.merge(TextStyle.superscript)));
-            break;
-          default:
-            spans.add(TextSpan(match.group(0)!, style: baseStyle));
-        }
-        lastMatchEnd = match.end;
-      }
-
-      if (lastMatchEnd < paragraph.length) {
-        spans.add(TextSpan(paragraph.substring(lastMatchEnd), style: baseStyle));
-      }
-
-      if (spans.isNotEmpty && paragraphIndent != null && paragraphIndent! > 0) {
-        if (indentFirstParagraph == true || paragraphIndex > 0) {
-          final firstSpan = spans.first;
-          final indentedStyle = firstSpan.style.merge(TextStyle(leftPadding: paragraphIndent!));
-          spans[0] = TextSpan(firstSpan.text, style: indentedStyle, metadata: firstSpan.metadata);
-        }
-      }
-
-      if (spans.isNotEmpty) {
-        richTextWidgets.add(RichText(children: spans, fontSize: fontSize, lineHeight: lineHeight));
-      }
-    }
-
-    final finalWidget = builder?.call(richTextWidgets) ?? Flow(children: richTextWidgets);
-
-    child = finalWidget.createRenderNode();
+    child = rootWidget.createRenderNode();
     child!.parent = this;
   }
 
   @override
   LayoutResult performLayout(LayoutContext context) {
-    _parseAndBuildChild(context);
+    _buildChild(context);
     final childResult = child!.layout(context);
-    return LayoutResult(size: childResult.size, metadata: childResult.metadata);
+    size = childResult.size;
+    return LayoutResult(size: size, metadata: childResult.metadata);
   }
 
   @override
   SliceLayoutResult performLayoutSlice(SliceLayoutContext context) {
-    _parseAndBuildChild(
-      context.createLayoutContext()
-    );
+    _buildChild(context.createLayoutContext());
     if (child is RenderSlice) {
       return (child as RenderSlice).layoutSlice(context);
     } else {
+      // Fallback for non-sliceable root widgets from script
       final childLayoutContext = context.createLayoutContext();
       final childResult = child!.layout(childLayoutContext);
       if (childResult.size.height <= context.availableHeight) {
@@ -1689,6 +1615,7 @@ class RenderFormattedText extends RenderNode with RenderObjectWithChildMixin, Re
     child?.paint(context, offset);
   }
 }
+
 
 class FormattedText extends Widget {
   final String text;
@@ -1731,10 +1658,6 @@ class FormattedText extends Widget {
       fontFamily: fontFamily ?? FontFamily.helvetica,
       fontSize: fontSize,
       lineHeight: lineHeight,
-      builder: builder,
-      paragraphIndent: paragraphIndent,
-      indentFirstParagraph: indentFirstParagraph,
-      newlinesForBreak: newlinesForBreak,
     );
   }
 }

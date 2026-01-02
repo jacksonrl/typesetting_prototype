@@ -95,7 +95,6 @@ class DebugTreeBuilder {
       metaString = ' [Meta: $keys]';
     }
 
-    // text preview
     final textContent = _getTextContent(node.renderNode);
 
     print('$prefix$connector$type (w:$w h:$h)$textContent$metaString');

@@ -13,6 +13,8 @@ dependencies:
   path: ^1.8.0
   http:
   web:
+  petitparser: ^7.0.1
+  lsp_server:
 
 dev_dependencies:
   dart_style:

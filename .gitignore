@@ -2,3 +2,10 @@
 # Created by `dart pub`
 .dart_tool/
 build/
+output/
+bin/server.exe
+
+extension/node_modules/
+extension/out/
+extension/dist/
+*.vsix

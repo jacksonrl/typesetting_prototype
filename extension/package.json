@@ -1,0 +1,39 @@
+{
+  "name": "typesetting-client",
+  "displayName": "Typesetting Script Support",
+  "description": "Language support for .tspt files",
+  "version": "0.0.1",
+  "publisher": "my-name",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tspt",
+        "aliases": [
+          "Typesetting Script",
+          "TSPT"
+        ],
+        "extensions": [
+          ".tspt"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^16.0.0",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "compile": "tsc -b",
+    "watch": "tsc -b -w"
+  }
+}

@@ -7,7 +7,6 @@ void main() async {
       header: PageSection.fixed(
         height: 25,
         builder: (context) {
-          // In Dart, we use the method on the context object directly
           final titles = context.getMetadata<String>(key: "chapterTitle");
           final title = titles.isNotEmpty ? titles.first : "Dart Native Showcase";
 
@@ -81,10 +80,9 @@ void main() async {
                 Text("This is a manually created footnote marker"),
                 MetadataMarker(
                   key: "__footnote",
-                  // Note: In Dart we use a specific class for the value
                   value: FootnoteLayoutInfo(
                     content: "This is a manually-defined footnote's text. It will be auto-numbered correctly after the others.",
-                    number: 0, // This gets overwritten by the layout engine
+                    number: 0,
                     position: 0,
                   ),
                   child: Text("3", fontSize: 8, style: TextStyle.superscript),
@@ -110,7 +108,5 @@ void main() async {
     ),
   );
 
-  // This calls the native saver (dart:io)
-  // Pass debug: true to see your tree dump in the terminal
   await PdfGenerator.generatePdf(doc, 'debug_output.pdf'); 
 }
